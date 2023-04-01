@@ -40,6 +40,8 @@
 #include <linux/file.h>
 
 #include "vnetInt.h"
+#include "compat_version.h"
+#include "compat_autoconf.h"
 #include "compat_netdevice.h"
 #include "vmnetInt.h"
 
@@ -65,7 +67,8 @@ static void VNetNetifSetMulticast(struct net_device *dev);
 static int  VNetNetIfProcRead(char *page, char **start, off_t off,
                               int count, int *eof, void *data);
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0) && \
+    !defined(RHEL86_BACKPORTS) && !defined(SLE15_SP3_BACKPORTS)
 static void
 __dev_addr_set(struct net_device *dev, const void *addr, size_t len)
 {
@@ -324,7 +327,7 @@ VNetNetIfReceive(VNetJack        *this, // IN: jack
    /* send to the host interface */
    skb->dev = netIf->dev;
    skb->protocol = eth_type_trans(skb, netIf->dev);
-   netif_rx_ni(skb);
+   compat_netif_rx_ni(skb);
    netIf->stats.rx_packets++;
 
    return;
